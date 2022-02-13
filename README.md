@@ -41,7 +41,7 @@ Validate permit average gas: 800001
 Blocking permit average gas: 22924
 ```
 
-Validating a permit is ~35x as expensive as simply using a viewing key. While permits are very useful users 
+Validating a permit is ~35x more expensive than simply using a viewing key. While permits are very useful users 
 since permits are created offline, if abused they can be detrimental to the nodes used for querying data.
 
 A good UX solution to this should be normalizing user created viewing keys instead of the Keplr default of 
