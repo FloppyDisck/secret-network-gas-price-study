@@ -1,4 +1,3 @@
-use std::fs;
 use cosmwasm_std::Binary;
 use flexible_permits::permit::Permit;
 use flexible_permits::transaction::{PermitSignature, PubKey};
@@ -6,8 +5,10 @@ use rand::distributions::Alphanumeric;
 use rand::Rng;
 use secretcli::secretcli::create_permit;
 use serde::Serialize;
+use std::fs;
 
 pub const PERMITS_FILE: &str = "../compiled/permits.wasm.gz";
+pub const STORAGE_FILE: &str = "../compiled/storage.wasm.gz";
 
 pub const STORE_GAS: &str = "10000000";
 pub const GAS: &str = "800000";
@@ -55,8 +56,11 @@ pub fn create_signed_permit<T: Clone + Serialize>(
     permit
 }
 
-pub fn store_struct<T: serde::Serialize>(path: &str, data: &T){
-    fs::write(path, serde_json::to_string_pretty(data)
-        .expect("Could not serialize data"))
-        .expect(&format!("Could not store {}", path));
+pub fn store_struct<T: serde::Serialize>(path: &str, data: &T) {
+    fs::write(
+        path,
+        serde_json::to_string_pretty(data).expect("Could not serialize data"),
+    )
+    .expect(&format!("Could not store {}", path));
 }
+

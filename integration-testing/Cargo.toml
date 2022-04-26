@@ -26,3 +26,4 @@ flexible-permits = {git = "https://github.com/securesecrets/flexible-permits", t
 
 # Contracts
 permits = { version = "0.1.0", path = "../contracts/permits" }
+storage = { version = "0.1.0", path = "../contracts/storage" }

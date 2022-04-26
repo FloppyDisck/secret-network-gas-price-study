@@ -1,8 +1,9 @@
-use cosmwasm_std::{Api, Binary, Env, Extern, HandleResponse, InitResponse, Querier, StdResult, Storage, to_binary};
-use secret_toolkit::utils::{pad_handle_result, pad_query_result};
 use crate::handle::{try_item_read, try_item_write, try_singleton_read, try_singleton_write};
 use crate::msgs::{HandleMsg, InitMsg, QueryMsg};
-use crate::query;
+use cosmwasm_std::{
+    to_binary, Api, Binary, Env, Extern, HandleResponse, InitResponse, Querier, StdResult, Storage,
+};
+use secret_toolkit::utils::{pad_handle_result, pad_query_result};
 
 // Used to pad up responses for better privacy.
 pub const RESPONSE_BLOCK_SIZE: usize = 256;
@@ -26,11 +27,11 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     pad_handle_result(
         match msg {
             HandleMsg::SingletonWrite { data } => try_singleton_write(deps, env, data),
-            HandleMsg::SingletonRead { data } => try_singleton_read(deps, env, data),
+            HandleMsg::SingletonRead {} => try_singleton_read(deps, env),
             HandleMsg::ItemWrite { data } => try_item_write(deps, env, data),
-            HandleMsg::ItemRead { data } => try_item_read(deps, env, data),
+            HandleMsg::ItemRead {} => try_item_read(deps, env),
         },
-        RESPONSE_BLOCK_SIZE
+        RESPONSE_BLOCK_SIZE,
     )
 }
 
@@ -40,3 +41,4 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     Ok(Binary::default())
 }
+
