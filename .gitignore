@@ -13,3 +13,8 @@ Cargo.lock
 .vscode/
 .idea/
 *.iml
+
+# project specific
+integration-testing/*.json
+integration-testing/tx_to_sign
+compiled
