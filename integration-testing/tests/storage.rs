@@ -1,10 +1,11 @@
-use integration_testing::utils::{generate_label, store_struct, GAS, STORAGE_FILE, STORE_GAS};
+use cosmwasm_std::{HumanAddr, Uint128};
+use integration_testing::utils::{generate_label, store_struct, GAS, STORAGE_FILE, STORE_GAS, get_average};
 use secretcli::cli_types::NetContract;
-use secretcli::secretcli::{handle, init, query};
+use secretcli::secretcli::{handle, init, query, Report};
 use serde_json::Result;
 use shade_protocol::utils::generic_response::ResponseStatus::{Failure, Success};
 use storage::handle;
-use storage::msgs::{HandleAnswer, HandleMsg, InitMsg, SimpleConfig};
+use storage::msgs::{HandleAnswer, HandleMsg, InitMsg, Config, UpdateConfig};
 
 fn init_contract() -> Result<NetContract> {
     init(
@@ -19,190 +20,368 @@ fn init_contract() -> Result<NetContract> {
     )
 }
 
-#[test]
-fn test_storage() -> Result<()> {
-    let contract = init_contract()?;
+fn run_msg<Message: serde::Serialize>(
+    msg: &Message,
+    contract: &NetContract,
+    report: &mut Vec<Report>,
+    gas: &mut Vec<u64>
+) -> Result<()>
+{
+    let (_, res) = handle(
+        &msg,
+        &contract,
+        "a",
+        Some(GAS),
+        Some("test"),
+        None,
+        report,
+        None,
+    )?;
 
-    // Test that singleton works
-    {
-        let config = SimpleConfig {
-            address: "test".into(),
-            some_number: cosmwasm_std::Uint128(5),
-            other_data: "singleton".to_owned(),
-        };
-
-        let msg = HandleMsg::SingletonWrite { data: config };
-
-        handle(
-            &msg,
-            &contract,
-            "a",
-            None,
-            Some("test"),
-            None,
-            &mut vec![],
-            None,
-        )?;
-    }
-
-    // Test that permit key banning works
-    {
-        let msg = HandleMsg::BlockPermitKey {
-            key: "key".to_string(),
-            padding: None,
-        };
-
-        handle(
-            &msg,
-            &contract,
-            "a",
-            Some(GAS),
-            Some("test"),
-            None,
-            &mut vec![],
-            None,
-        )?;
-    }
-
-    // Test that permits work
-    {
-        let msg = QueryMsg::Permit { permit };
-
-        let query: QueryAnswer = query(&contract, msg, None)?;
-
-        if let QueryAnswer::Permit { status } = query {
-            assert_eq!(status, Failure);
-        }
-    }
+    gas.push(res.gas_used.parse::<u64>().unwrap());
 
     Ok(())
 }
 
 #[test]
 fn gas_study() -> Result<()> {
-    let permit = create_signed_permit(
-        PermitMsg {
-            key: "key".to_string(),
-        },
-        None,
-        "a",
-    );
-
-    println!("{}", serde_json::to_string(&permit)?);
-
     let mut report = vec![];
 
-    let mut set_key_gas = vec![];
-    let mut use_key_gas = vec![];
-    let mut use_permit_gas = vec![];
-    let mut block_permit_gas = vec![];
+
+    let mut singleton_write_gas = vec![];
+    let mut singleton_read_gas = vec![];
+    let mut item_write_gas = vec![];
+    let mut item_read_gas = vec![];
+
+    let mut fractioned_item_write_all_gas = vec![];
+    let mut fractioned_item_write_small_gas = vec![];
+    let mut fractioned_item_write_large_gas = vec![];
+    let mut fractioned_item_read_gas = vec![];
+
+    let mut tiny_vec_gas = vec![];
+    let mut small_vec_gas = vec![];
+    let mut large_vec_gas = vec![];
+    let mut huge_vec_gas = vec![];
+
+    let mut bucket_write_gas = vec![];
+    let mut bucket_read_gas = vec![];
+    let mut bucket_read_range_gas = vec![];
+
+    let mut map_write_gas = vec![];
+    let mut map_read_gas = vec![];
+    let mut map_read_range_gas = vec![];
+
+    let tiny_vec: Vec<u64> = (0..10).collect();
+    let small_vec: Vec<u64> = (0..100).collect();
+    let large_vec: Vec<u64> = (0..1000).collect();
+    let huge_vec: Vec<u64> = (0..10000).collect();
+
+    let config = Config {
+        address: HumanAddr::from("some_address"),
+        number: Uint128(u128::MAX),
+        other_data: "some random string".to_string(),
+        array: large_vec.clone()
+    };
 
     for _ in 0..10 {
         let contract = init_contract()?;
 
-        // Create viewing key
+        // Singleton Write
         {
-            let msg = HandleMsg::SetViewingKey {
-                key: "key".to_string(),
-                padding: None,
+            let msg = HandleMsg::SingletonWrite {
+                data: config.clone()
             };
 
-            let (_, res) = handle(
-                &msg,
-                &contract,
-                "a",
-                Some(GAS),
-                Some("test"),
-                None,
-                &mut report,
-                None,
-            )?;
-
-            set_key_gas.push(res.gas_used.parse::<u64>().unwrap());
+            run_msg(&msg, &contract, &mut report, &mut singleton_write_gas)?;
         }
 
-        // "query" viewing key
+        // Singleton Read
         {
-            let msg = HandleMsg::UseViewingKey {
-                key: "key".to_string(),
-                padding: None,
-            };
+            let msg = HandleMsg::SingletonRead {};
 
-            let (_, res) = handle(
-                &msg,
-                &contract,
-                "a",
-                Some(GAS),
-                Some("test"),
-                None,
-                &mut report,
-                None,
-            )?;
-
-            use_key_gas.push(res.gas_used.parse::<u64>().unwrap());
+            run_msg(&msg, &contract, &mut report, &mut singleton_read_gas)?;
         }
 
-        // "query" permit
+        // Item Write
         {
-            let msg = HandleMsg::UsePermit {
-                permit: permit.clone(),
-                padding: None,
+            let msg = HandleMsg::ItemWrite {
+                data: config.clone()
             };
 
-            let (_, res) = handle(
-                &msg,
-                &contract,
-                "a",
-                Some(GAS),
-                Some("test"),
-                None,
-                &mut report,
-                None,
-            )?;
-
-            use_permit_gas.push(res.gas_used.parse::<u64>().unwrap());
+            run_msg(&msg, &contract, &mut report, &mut item_write_gas)?;
         }
 
-        // Ban permit
+        // Item Read
         {
-            let msg = HandleMsg::BlockPermitKey {
-                key: "key".to_string(),
-                padding: None,
+            let msg = HandleMsg::ItemRead {
             };
 
-            let (_, res) = handle(
-                &msg,
-                &contract,
-                "a",
-                Some(GAS),
-                Some("test"),
-                None,
-                &mut report,
-                None,
-            )?;
+            run_msg(&msg, &contract, &mut report, &mut item_read_gas)?;
+        }
 
-            block_permit_gas.push(res.gas_used.parse::<u64>().unwrap());
+        // Fractioned
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: Some(HumanAddr::from("Someone")),
+                    number: Some(Uint128(u128::MAX)),
+                    other_data: Some("some string".to_string()),
+                    array: Some(large_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut fractioned_item_write_all_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: Some(HumanAddr::from("Someone")),
+                    number: Some(Uint128(u128::MAX)),
+                    other_data: Some("some string".to_string()),
+                    array: None
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut fractioned_item_write_small_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: None,
+                    number: None,
+                    other_data: None,
+                    array: Some(large_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut fractioned_item_write_large_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemRead {};
+
+            run_msg(&msg, &contract, &mut report, &mut fractioned_item_read_gas)?;
+        }
+
+        // Vec
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: None,
+                    number: None,
+                    other_data: None,
+                    array: Some(tiny_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut tiny_vec_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: None,
+                    number: None,
+                    other_data: None,
+                    array: Some(small_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut small_vec_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: None,
+                    number: None,
+                    other_data: None,
+                    array: Some(large_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut large_vec_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::FractionedItemWrite {
+                data: UpdateConfig {
+                    address: None,
+                    number: None,
+                    other_data: None,
+                    array: Some(huge_vec.clone())
+                }
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut huge_vec_gas)?;
+        }
+
+        // Setup for bucket and map read range
+        {
+            let data = vec![config.clone(), config.clone(), config.clone(), config.clone()];
+            {
+                let msg = HandleMsg::BucketWriteRange {
+                    id: (1, 0),
+                    data: data.clone()
+                };
+
+                run_msg(&msg, &contract, &mut report, &mut vec![])?;
+            }
+
+            {
+                let msg = HandleMsg::MapWriteRange {
+                    id: (1, 0),
+                    data
+                };
+
+                run_msg(&msg, &contract, &mut report, &mut vec![])?;
+            }
+        }
+
+        {
+            let msg = HandleMsg::BucketWrite {
+                id: (0, 0),
+                data: config.clone()
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut bucket_write_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::BucketRead {
+                id: (0, 0),
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut bucket_read_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::BucketRange {
+                id: 1,
+                min: 0,
+                max: 3
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut bucket_read_range_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::MapWrite {
+                id: (0, 0),
+                data: config.clone()
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut map_write_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::MapRead {
+                id: (0, 0),
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut map_read_gas)?;
+        }
+
+        {
+            let msg = HandleMsg::MapRange {
+                id: 1,
+                min: 0,
+                max: 3
+            };
+
+            run_msg(&msg, &contract, &mut report, &mut map_read_range_gas)?;
         }
     }
 
     println!(
-        "Set viewing key average gas: {}",
-        set_key_gas.iter().sum::<u64>() / set_key_gas.len() as u64
-    );
-    println!(
-        "Get viewing key average gas: {}",
-        use_key_gas.iter().sum::<u64>() / use_key_gas.len() as u64
-    );
-    println!(
-        "Validate permit average gas: {}",
-        use_permit_gas.iter().sum::<u64>() / use_permit_gas.len() as u64
-    );
-    println!(
-        "Blocking permit average gas: {}",
-        block_permit_gas.iter().sum::<u64>() / block_permit_gas.len() as u64
+        "Singleton write average gas: {}",
+        get_average(singleton_write_gas)
     );
 
-    store_struct("./permit_gas_study.json", &report);
+    println!(
+        "Singleton read average gas: {}",
+        get_average(singleton_read_gas)
+    );
+
+    println!(
+        "Item write average gas: {}",
+        get_average(item_write_gas)
+    );
+
+    println!(
+        "Item read average gas: {}",
+        get_average(item_read_gas)
+    );
+
+    // Fractioned
+    println!(
+        "Fractioned Item read average gas: {}",
+        get_average(fractioned_item_read_gas)
+    );
+    println!(
+        "Fractioned Item write average gas: {}",
+        get_average(fractioned_item_write_all_gas)
+    );
+    println!(
+        "Fractioned Item small partial write average gas: {}",
+        get_average(fractioned_item_write_small_gas)
+    );
+    println!(
+        "Fractioned Item large partial write average gas: {}",
+        get_average(fractioned_item_write_large_gas)
+    );
+
+    // Vec
+    println!(
+        "Write vec of 10 items average gas: {}",
+        get_average(tiny_vec_gas)
+    );
+    println!(
+        "Write vec of 100 items average gas: {}",
+        get_average(small_vec_gas)
+    );
+    println!(
+        "Write vec of 1000 items average gas: {}",
+        get_average(large_vec_gas)
+    );
+    println!(
+        "Write vec of 10000 items average gas: {}",
+        get_average(huge_vec_gas)
+    );
+
+    // Bucket
+    println!(
+        "Write item on bucket average gas: {}",
+        get_average(bucket_write_gas)
+    );
+    println!(
+        "Read item on bucket average gas: {}",
+        get_average(bucket_read_gas)
+    );
+    println!(
+        "Read 4 item range on bucket average gas: {}",
+        get_average(bucket_read_range_gas)
+    );
+
+    // Map
+    println!(
+        "Write item on map average gas: {}",
+        get_average(map_write_gas)
+    );
+    println!(
+        "Read item on map average gas: {}",
+        get_average(map_read_gas)
+    );
+    println!(
+        "Read 4 item range on map average gas: {}",
+        get_average(map_read_range_gas)
+    );
+
+
+    store_struct("./storage_gas_study.json", &report);
 
     Ok(())
 }

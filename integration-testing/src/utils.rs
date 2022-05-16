@@ -13,6 +13,10 @@ pub const STORAGE_FILE: &str = "../compiled/storage.wasm.gz";
 pub const STORE_GAS: &str = "10000000";
 pub const GAS: &str = "800000";
 
+pub fn get_average(arr: Vec<u64>) -> u64 {
+    arr.iter().sum::<u64>() / arr.len() as u64
+}
+
 pub fn generate_label(size: usize) -> String {
     rand::thread_rng()
         .sample_iter(&Alphanumeric)

@@ -1,5 +1,5 @@
 use cosmwasm_std::{StdError, StdResult, Storage};
-use secret_storage_plus::Item;
+use secret_storage_plus::{Item, Map, Prefix, PrimaryKey};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -27,3 +27,31 @@ pub trait ItemStorage: Serialize + DeserializeOwned {
     }
 }
 
+pub trait MapStorage<'a, K: PrimaryKey<'a>>: Serialize + DeserializeOwned {
+    const MAP: Map<'static, K, Self>;
+
+    fn load<S: Storage>(storage: &S, key: K) -> StdResult<Self> {
+        Self::MAP.load(storage, key)
+    }
+
+    fn may_load<S: Storage>(storage: &S, key: K) -> StdResult<Option<Self>> {
+        Self::MAP.may_load(storage, key)
+    }
+
+    fn save<S: Storage>(&self, storage: &mut S, key: K) -> StdResult<()> {
+        Self::MAP.save(storage, key, self)
+    }
+
+    fn update<A, E, S: Storage>(&self, storage: &mut S, key: K, action: A
+    ) -> Result<Self, E>
+        where
+            A: FnOnce(Option<Self>) -> Result<Self, E>,
+            E: From<StdError>,
+    {
+        Self::MAP.update(storage, key, action)
+    }
+
+    fn prefix(prefix: K::Prefix) -> Prefix<K::Suffix, Self, K::Suffix> {
+        Self::MAP.prefix(prefix)
+    }
+}
