@@ -31,8 +31,11 @@ impl CodeType for Error {
     }
 }
 
+const TARGET: &str = "permits";
+
 pub fn password_incorrect_length(password_len: u16) -> StdError {
     DetailedError::from_code(
+        TARGET,
         Error::IncorrectPasswordLength,
         vec![&password_len.to_string(), &VIEWING_KEY_SIZE.to_string()])
         .to_error()
@@ -40,6 +43,7 @@ pub fn password_incorrect_length(password_len: u16) -> StdError {
 
 pub fn incorrect_password() -> StdError {
     DetailedError::from_code(
+        TARGET,
         Error::IncorrectPassword,
         vec![])
         .to_error()
@@ -47,6 +51,7 @@ pub fn incorrect_password() -> StdError {
 
 pub fn password_not_set() -> StdError {
     DetailedError::from_code(
+        TARGET,
         Error::PasswordNotSet,
         vec![])
         .to_error()
@@ -54,6 +59,7 @@ pub fn password_not_set() -> StdError {
 
 pub fn permit_rejected() -> StdError {
     DetailedError::from_code(
+        TARGET,
         Error::PermitRejected,
         vec![])
         .to_error()
@@ -61,6 +67,7 @@ pub fn permit_rejected() -> StdError {
 
 pub fn permit_key_banned() -> StdError {
     DetailedError::from_code(
+        TARGET,
         Error::PermitKeyBanned,
         vec![])
         .to_error()

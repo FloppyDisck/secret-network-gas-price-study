@@ -2,6 +2,7 @@
 members = [
     # Contracts
     "contracts/permits",
+    "contracts/storage",
 
     # Tester
     "integration-testing"

@@ -1,5 +1,5 @@
 [package]
-name = "permits"
+name = "storage"
 version = "0.1.0"
 authors = [
   "Guy Garcia <guysebastiangarcia@gmail.com>",
@@ -26,7 +26,7 @@ debug-print = ["cosmwasm-std/debug-print"]
 
 [dependencies]
 cosmwasm-std = { version = "0.10", package = "secret-cosmwasm-std" }
-cosmwasm-storage = { version = "0.10", package = "secret-cosmwasm-storage" }
+#cosmwasm-storage = { version = "0.10", package = "secret-cosmwasm-storage" }
 cosmwasm-schema = "0.10.1"
 secret-toolkit = { version = "0.2" }
 schemars = "0.7"
@@ -37,8 +37,8 @@ mockall_double = "0.2.0"
 
 sha2 = { version = "0.9.1", default-features = false }
 
-shade-protocol = { git = "https://github.com/securesecrets/shade", branch = "dev", features = ["errors", "storage"] }
-flexible-permits = {git = "https://github.com/securesecrets/flexible-permits", tag = "v1.1.0"}
+shade-protocol = { git = "https://github.com/chris-ricketts/shade", branch = "storage-iterator-feature", features = ["storage"] }
+secret-storage-plus = { git = "https://github.com/chris-ricketts/secret-storage-plus"}
 
 [dev-dependencies]
 serde_json = { version = "1.0.67"}

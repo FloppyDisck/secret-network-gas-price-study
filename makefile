@@ -13,7 +13,7 @@ cat ./$(1).wasm | gzip -n -9 > ${compiled_dir}/$(1).wasm.gz
 rm ./$(1).wasm
 endef
 
-CONTRACTS = permits
+CONTRACTS = permits storage
 
 debug: setup
 	(cd ${contracts_dir}; ${build-debug})

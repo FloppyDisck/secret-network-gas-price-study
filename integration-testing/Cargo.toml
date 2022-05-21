@@ -19,10 +19,11 @@ getrandom = { version = "0.2", features = ["js"] } # Prevents wasm from freaking
 rand = { version = "0.8.4"}
 cosmwasm-std = { version = "0.10", package = "secret-cosmwasm-std" }
 
-shade-protocol = { git = "https://github.com/securesecrets/shade", branch = "dev" }
+shade-protocol = { git = "https://github.com/securesecrets/shade", branch = "dev", features = ["utils"] }
 secretcli = { git = "https://github.com/securesecrets/shade", branch = "dev" }
 rs_merkle = { git = "https://github.com/FloppyDisck/rs-merkle", branch = "node_export" }
 flexible-permits = {git = "https://github.com/securesecrets/flexible-permits", tag = "v1.1.0"}
 
 # Contracts
 permits = { version = "0.1.0", path = "../contracts/permits" }
+storage = { version = "0.1.0", path = "../contracts/storage" }
