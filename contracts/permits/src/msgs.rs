@@ -1,4 +1,4 @@
-use flexible_permits::permit::Permit;
+use query_authentication::permit::Permit;
 use schemars::JsonSchema;
 use secret_toolkit::utils::{HandleCallback, InitCallback, Query};
 use serde::{Deserialize, Serialize};

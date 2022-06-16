@@ -1,6 +1,6 @@
 use cosmwasm_std::Binary;
-use flexible_permits::permit::Permit;
-use flexible_permits::transaction::{PermitSignature, PubKey};
+use query_authentication::permit::Permit;
+use query_authentication::transaction::{PermitSignature, PubKey};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use secretcli::secretcli::create_permit;
@@ -11,7 +11,7 @@ pub const PERMITS_FILE: &str = "../compiled/permits.wasm.gz";
 pub const STORAGE_FILE: &str = "../compiled/storage.wasm.gz";
 
 pub const STORE_GAS: &str = "10000000";
-pub const GAS: &str = "800000";
+pub const GAS: &str = "1000000";
 
 pub fn get_average(arr: Vec<u64>) -> u64 {
     arr.iter().sum::<u64>() / arr.len() as u64
@@ -50,7 +50,7 @@ pub fn create_signed_permit<T: Clone + Serialize>(
     let signed_info = create_permit(unsigned_msg, signer).unwrap();
 
     permit.signature = PermitSignature {
-        pub_key: flexible_permits::transaction::PubKey {
+        pub_key: query_authentication::transaction::PubKey {
             r#type: signed_info.pub_key.msg_type,
             value: Binary::from_base64(&signed_info.pub_key.value).unwrap(),
         },

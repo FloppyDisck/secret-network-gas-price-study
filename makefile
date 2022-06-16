@@ -59,13 +59,13 @@ format:
 
 # Downloads the docker server
 server-download:
-	docker pull securesecrets/sn-testnet:v0.2
+	docker pull securesecrets/sn-nighlty:nightly
 
 # Starts the docker server / private testnet
 server-start:
 	docker run -it --rm \
 	 -p 26657:26657 -p 26656:26656 -p 1337:1337 \
-	 -v $$(pwd):/root/code --name shade-testnet securesecrets/sn-testnet:v0.2
+	 -v $$(pwd):/root/code --name shade-testnet securesecrets/sn-nighlty:nightly
 
 # Connects to the docker server
 server-connect:

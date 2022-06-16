@@ -31,18 +31,10 @@ After running the integration tests, you will find json files describing runtime
 
 ### Permit Contract
 
-The idea of this contract is to show via handleMsgs the impact a permit can have on the network.
-
 The following is taken straight from the `integration-testing` package
 ```
 Set viewing key average gas: 23493
-Get viewing key average gas: 22645
-Validate permit average gas: 800001
+Get viewing key average gas: 23658
+Validate permit average gas: 26641
 Blocking permit average gas: 22924
 ```
-
-Validating a permit is ~35x more expensive than simply using a viewing key. While permits are very useful users 
-since permits are created offline, if abused they can be detrimental to the nodes used for querying data.
-
-A good UX solution to this should be normalizing user created viewing keys instead of the Keplr default of 
-automatically generating them for you.
