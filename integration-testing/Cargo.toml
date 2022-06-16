@@ -22,7 +22,7 @@ cosmwasm-std = { version = "0.10", package = "secret-cosmwasm-std" }
 shade-protocol = { git = "https://github.com/securesecrets/shade", branch = "dev", features = ["utils"] }
 secretcli = { git = "https://github.com/securesecrets/shade", branch = "dev" }
 rs_merkle = { git = "https://github.com/FloppyDisck/rs-merkle", branch = "node_export" }
-flexible-permits = {git = "https://github.com/securesecrets/flexible-permits", tag = "v1.1.0"}
+query-authentication = { git = "https://github.com/securesecrets/flexible-permits", tag = "v1.3.0" }
 
 # Contracts
 permits = { version = "0.1.0", path = "../contracts/permits" }

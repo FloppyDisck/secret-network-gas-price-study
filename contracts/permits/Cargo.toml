@@ -25,10 +25,10 @@ backtraces = ["cosmwasm-std/backtraces"]
 debug-print = ["cosmwasm-std/debug-print"]
 
 [dependencies]
-cosmwasm-std = { version = "0.10", package = "secret-cosmwasm-std" }
+cosmwasm-std = { version = "0.10.1", package = "secret-cosmwasm-std" }
 cosmwasm-storage = { version = "0.10", package = "secret-cosmwasm-storage" }
 cosmwasm-schema = "0.10.1"
-secret-toolkit = { version = "0.2" }
+secret-toolkit = { version = "0.3" }
 schemars = "0.7"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 snafu = { version = "0.6.3" }
@@ -38,7 +38,7 @@ mockall_double = "0.2.0"
 sha2 = { version = "0.9.1", default-features = false }
 
 shade-protocol = { git = "https://github.com/securesecrets/shade", branch = "dev", features = ["errors", "storage"] }
-flexible-permits = {git = "https://github.com/securesecrets/flexible-permits", tag = "v1.1.0"}
+query-authentication = { git = "https://github.com/securesecrets/flexible-permits", tag = "v1.3.0" }
 
 [dev-dependencies]
 serde_json = { version = "1.0.67"}

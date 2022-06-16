@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use std::convert::TryInto;
 use cosmwasm_std::{Api, StdResult, Storage};
 use sha2::{Sha256, Digest};
-use shade_protocol::utils::storage::BucketStorage;
+use shade_protocol::utils::storage::default::BucketStorage;
 use crate::errors::{incorrect_password, password_incorrect_length, password_not_set, permit_key_banned, permit_rejected};
 use crate::msgs::QueryPermit;
 
@@ -52,8 +52,8 @@ pub fn store_password<S: Storage>(storage: &mut S, password: &str, account: Stri
 /// Validate permit signature and if the permit's key has been blocked
 ///
 pub fn validate_permit<S: Storage, A: Api>(storage: &S, api: &A, permit: QueryPermit) -> StdResult<()> {
-    let account = match permit.validate(None) {
-        Ok(pubkey) => pubkey.as_humanaddr(api)?.to_string(),
+    let account = match permit.validate(api, None) {
+        Ok(pubkey) => pubkey.as_humanaddr(None)?.to_string(),
         Err(_) => return Err(permit_rejected())
     };
 

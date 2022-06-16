@@ -2,7 +2,7 @@
 mod tests {
     use cosmwasm_std::{Binary, Extern, InitResponse, StdError, StdResult};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage};
-    use flexible_permits::transaction::{PermitSignature, PubKey};
+    use query_authentication::transaction::{PermitSignature, PubKey};
     use shade_protocol::utils::errors::DetailedError;
     use crate::contract::{handle, init};
     use crate::errors::Error;

@@ -44,7 +44,7 @@ fn run_msg<Message: serde::Serialize>(
 }
 
 #[test]
-fn gas_study() -> Result<()> {
+fn storage_gas_study() -> Result<()> {
     let mut report = vec![];
 
 
